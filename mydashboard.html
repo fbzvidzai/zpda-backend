@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - ZPDA</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f5f5f5; margin:0; padding:0; }
+  header { background:#162447; color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
+  header h1 { margin:0; font-size:1.5em; }
+  nav a { color:white; text-decoration:none; margin-left:15px; font-weight:bold; }
+  nav a:hover { text-decoration:underline; }
+
+  .container { padding:20px; max-width:1200px; margin:auto; }
+  h2 { margin-bottom:20px; color:#162447; }
+
+  table { width:100%; border-collapse: collapse; background:white; border-radius:8px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin-top:20px; }
+  th, td { padding:12px; text-align:left; border-bottom:1px solid #ddd; }
+  th { background:#5c9ded; color:white; }
+  tr:hover { background:#f1f1f1; }
+
+  button { padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
+  .delete-btn { background:#e43f5a; color:white; }
+  .delete-btn:hover { background:#d73750; }
+  .edit-btn { background:#5c9ded; color:white; }
+  .edit-btn:hover { background:#4178c0; }
+  .email-btn { background:#ffa500; color:white; }
+  .email-btn:hover { background:#e69500; }
+  .upload-btn { background:#28a745; color:white; }
+  .upload-btn:hover { background:#218838; }
+  .switch-btn { background:#6c63ff; color:white; margin-bottom:10px; }
+  .switch-btn:hover { background:#5148c4; }
+
+  #loginForm { max-width:400px; margin:100px auto; padding:20px; background:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+  #loginForm input { width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:6px; }
+  #loginForm button { width:100%; background:#5c9ded; color:white; border:none; padding:10px; font-weight:bold; border-radius:6px; cursor:pointer; }
+  #loginForm button:hover { background:#4178c0; }
+
+  .form-section { margin-bottom:20px; background:white; padding:15px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+  .form-section input, .form-section textarea { width:100%; padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:6px; }
+  .form-section button { padding:10px; font-weight:bold; border-radius:6px; cursor:pointer; }
+
+  #searchInput { width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:6px; }
+  #adsSection img {
+  border-radius:6px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Admin Dashboard</h1>
+  <nav>
+    <a href="admin-login.html" id="logoutBtn">Logout</a>
+  </nav>
+</header>
+
+<div class="container" id="dashboardContainer" style="display:none;">
+  <button id="switchToPoems" class="switch-btn" style="display:none;">← Poems Dashboard</button>
+  <button id="switchToResearch" class="switch-btn">Research Papers Dashboard →</button>
+  <button id="switchToUsers" class="switch-btn">Users Dashboard →</button>
+  <button id="switchToTeaching" class="switch-btn">Teaching Resources →</button>
+  <button id="switchToAds" class="switch-btn">Advertisements →</button>
+  <button id="switchFromAds" class="switch-btn">← Back</button>
+
+  <!-- POEMS SECTION -->
+  <div id="poemsSection">
+    <div class="form-section" id="addPoemForm">
+      <h3>Add New Poem</h3>
+      <input type="text" id="poemTitle" placeholder="Title" required>
+      <input type="text" id="poemAuthor" placeholder="Author (Optional)">
+      <textarea id="poemText" placeholder="Text" rows="4" required></textarea>
+      <input type="text" id="poemLanguage" placeholder="Language (optional)">
+      <input type="text" id="poemGenre" placeholder="Genre (optional)">
+      <input type="text" id="poemPeriod" placeholder="Period (optional)">
+      <button id="addPoemBtn">Add Poem</button>
+    </div>
+
+    <div class="form-section" id="sendEmailForm">
+      <h3>Send Email to All Users</h3>
+      <input type="text" id="emailSubject" placeholder="Email Subject" required>
+      <textarea id="emailBody" placeholder="Email Body" rows="4" required></textarea>
+      <button id="sendEmailBtn">Send Email</button>
+    </div>
+
+    <input type="text" id="poemsSearchInput" placeholder="Search poems by title or author">
+
+    <h2>All Submitted Poems</h2>
+    <table id="poemsTable">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Text Preview</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- RESEARCH SECTION -->
+  <div id="researchSection" style="display:none;">
+    <div class="form-section" id="uploadForm">
+      <h3>Upload New Research Paper</h3>
+      <input type="text" id="paperTitle" placeholder="Title" required>
+      <input type="text" id="paperAuthors" placeholder="Authors" required>
+      <input type="number" id="paperYear" placeholder="Year" required>
+      <textarea id="paperAbstract" placeholder="Abstract" rows="3" required></textarea>
+      <input type="text" id="paperKeywords" placeholder="Keywords (comma separated)">
+      <input type="file" id="paperFile" accept="application/pdf" required>
+      <button id="uploadPaperBtn" class="upload-btn">Upload Paper</button>
+    </div>
+
+    <input type="text" id="researchSearchInput" placeholder="Search research papers by title or author">
+
+    <h2>All Research Papers</h2>
+    <table id="researchTable">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Authors</th>
+          <th>Year</th>
+          <th>Keywords</th>
+          <th>PDF</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+<!-- TEACHING RESOURCES SECTION -->
+<div id="teachingSection" style="display:none;">
+  <h2>Teaching Resources</h2>
+
+  <!-- UPLOAD FORM -->
+  <div class="form-section">
+    <h3>Upload Teaching Resource</h3>
+
+    <input type="text" id="resourceTitle" placeholder="Title" required>
+    <input type="text" id="resourceAuthor" placeholder="Author / Lecturer">
+    <input type="text" id="resourceSubject" placeholder="Subject (e.g. Digital Humanities)">
+    <textarea id="resourceDescription" placeholder="Description" rows="3"></textarea>
+
+    <input type="file" id="resourceFile" accept=".pdf,.doc,.docx,.ppt,.pptx" required>
+
+    <button id="uploadResourceBtn" class="upload-btn">Upload Resource</button>
+  </div>
+
+  <!-- SEARCH -->
+  <input type="text" id="teachingSearchInput" placeholder="Search teaching resources">
+
+  <!-- TABLE -->
+  <table id="teachingTable">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Subject</th>
+        <th>File</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+
+<!-- USERS SECTION -->
+<div id="usersSection" style="display:none;">
+  <h2>User Statistics</h2>
+  <p>Total Users: <span id="totalUsers">0</span></p>
+  <p>Blocked Users: <span id="blockedUsers">0</span></p>
+
+  <input type="text" id="usersSearchInput" placeholder="Search users by email">
+  <h2>All Users</h2>
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- ADS SECTION -->
+<div id="adsSection" style="display:none;">
+  <h2>Advertisements</h2>
+
+  <input type="text" id="adsSearchInput" placeholder="Search ads by name or phone">
+
+  <table id="adsTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Amount</th>
+        <th>Approval Code</th>
+        <th>Ad Text</th>
+        <th>Flyer</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="loginForm">
+  <h2>Admin Login</h2>
+  <input type="email" id="adminEmail" placeholder="Email" required>
+  <input type="password" id="adminPass" placeholder="Password" required>
+  <button id="loginBtn">Login</button>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const loginForm = document.getElementById("loginForm");
+  const dashboardContainer = document.getElementById("dashboardContainer");
+  const logoutBtn = document.getElementById("logoutBtn");
+  logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("adminToken");
+
+  // FORCE redirect to login state properly
+  window.location.href = window.location.href;
+});
+
+  const switchToResearch = document.getElementById("switchToResearch");
+  const switchToPoems = document.getElementById("switchToPoems");
+  const switchToUsers = document.getElementById("switchToUsers");
+
+  const poemsSection = document.getElementById("poemsSection");
+  const researchSection = document.getElementById("researchSection");
+  const usersSection = document.getElementById("usersSection");
+  const adsSection = document.getElementById("adsSection");
+const switchToAds = document.getElementById("switchToAds");
+
+// 👇 PASTE HERE (Teaching Section variables)
+const teachingSection = document.getElementById("teachingSection");
+const switchToTeaching = document.getElementById("switchToTeaching");
+
+const teachingTableBody = document.querySelector("#teachingTable tbody");
+const teachingSearchInput = document.getElementById("teachingSearchInput");
+
+let teachingData = [];
+
+  let token = localStorage.getItem("adminToken");
+
+  if(token) {
+    loginForm.style.display = "none";
+    dashboardContainer.style.display = "block";
+    loadPoems();
+  }
+
+  // LOGIN
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("adminEmail").value;
+    const password = document.getElementById("adminPass").value;
+
+    try {
+      const res = await fetch("http://localhost:5000/admin-login", {
+        method:"POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if(data.token){
+        localStorage.setItem("adminToken", data.token);
+        token = data.token;
+        loginForm.style.display = "none";
+        dashboardContainer.style.display = "block";
+        loadPoems();
+      } else { alert(data.error || "Login failed"); }
+    } catch(err){ console.error(err); alert("Login failed"); }
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("adminToken");
+    location.reload();
+  });
+
+ function hideAllSections() {
+  poemsSection.style.display = "none";
+  researchSection.style.display = "none";
+  usersSection.style.display = "none";
+  adsSection.style.display = "none";
+  teachingSection.style.display = "none";
+}
+// =================== SWITCH TO RESEARCH ===================
+switchToResearch.addEventListener("click", () => {
+  hideAllSections();
+  researchSection.style.display = "block";
+
+  switchToPoems.style.display = "inline-block";
+  switchToUsers.style.display = "inline-block";
+  switchToAds.style.display = "inline-block";
+
+  loadResearch();
+});
+
+// =================== SWITCH TO POEMS ===================
+switchToPoems.addEventListener("click", () => {
+  hideAllSections();
+  poemsSection.style.display = "block";
+
+  switchToResearch.style.display = "inline-block";
+  switchToUsers.style.display = "inline-block";
+  switchToAds.style.display = "inline-block";
+});
+
+// =================== SWITCH TO USERS ===================
+switchToUsers.addEventListener("click", () => {
+  hideAllSections();
+  usersSection.style.display = "block";
+
+  switchToPoems.style.display = "inline-block";
+  switchToResearch.style.display = "inline-block";
+  switchToAds.style.display = "inline-block";
+
+  loadUsers();
+});
+
+
+switchToTeaching.addEventListener("click", () => {
+  hideAllSections();
+  teachingSection.style.display = "block";
+
+  switchToPoems.style.display = "inline-block";
+  switchToResearch.style.display = "inline-block";
+  switchToUsers.style.display = "inline-block";
+  switchToAds.style.display = "inline-block";
+
+  loadTeaching();
+});
+
+// =================== SWITCH TO ADS ===================
+switchToAds.addEventListener("click", () => {
+  hideAllSections();
+  adsSection.style.display = "block";
+
+  switchToPoems.style.display = "inline-block";
+  switchToResearch.style.display = "inline-block";
+  switchToUsers.style.display = "inline-block";
+
+  loadAds();
+});
+
+const switchFromAds = document.getElementById("switchFromAds");
+
+switchFromAds.addEventListener("click", () => {
+  adsSection.style.display = "none";
+  poemsSection.style.display = "block";
+
+  switchFromAds.style.display = "none";
+  switchToAds.style.display = "inline-block";
+});
+
+  // =================== POEMS ===================
+  const poemsTableBody = document.querySelector("#poemsTable tbody");
+  const addPoemBtn = document.getElementById("addPoemBtn");
+  const poemsSearchInput = document.getElementById("poemsSearchInput");
+  let poemsData = [];
+
+  async function loadPoems(){
+    try{
+      const res = await fetch("http://localhost:5000/poems", { headers:{ "Authorization":"Bearer "+token } });
+      poemsData = await res.json();
+      renderPoems(poemsData);
+    }catch(err){ console.error(err); }
+  }
+
+  function renderPoems(data){
+    poemsTableBody.innerHTML = "";
+    data.forEach(p => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="text" value="${p.title}" id="title-${p._id}"></td>
+        <td><input type="text" value="${p.author}" id="author-${p._id}"></td>
+        <td><textarea rows="3" id="text-${p._id}">${p.text}</textarea></td>
+        <td>
+          <button class="edit-btn" onclick="editPoem('${p._id}')">Save</button>
+          <button class="delete-btn" onclick="deletePoem('${p._id}')">Delete</button>
+        </td>
+      `;
+      poemsTableBody.appendChild(tr);
+    });
+  }
+
+  poemsSearchInput.addEventListener("input", ()=> {
+    const term = poemsSearchInput.value.toLowerCase();
+    const filtered = poemsData.filter(p =>
+      p.title.toLowerCase().includes(term) ||
+      (p.author && p.author.toLowerCase().includes(term))
+    );
+    renderPoems(filtered);
+  });
+
+  addPoemBtn.addEventListener("click", async () => {
+    const newPoem = {
+      title: document.getElementById("poemTitle").value,
+      author: document.getElementById("poemAuthor").value.trim() || "Anonymous",
+      text: document.getElementById("poemText").value,
+      language: document.getElementById("poemLanguage").value,
+      genre: document.getElementById("poemGenre").value,
+      period: document.getElementById("poemPeriod").value
+    };
+    if(!newPoem.title || !newPoem.author || !newPoem.text) return alert("Title, author, text required");
+    try{
+      await fetch("http://localhost:5000/poems", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+token },
+        body: JSON.stringify(newPoem)
+      });
+      loadPoems();
+    }catch(err){ console.error(err); alert("Failed to add poem"); }
+  });
+
+  window.editPoem = async (id)=> {
+    const updatedPoem = {
+      title: document.getElementById(`title-${id}`).value,
+      author: document.getElementById(`author-${id}`).value,
+      text: document.getElementById(`text-${id}`).value
+    };
+    await fetch(`http://localhost:5000/poems/${id}`, {
+      method:"PUT",
+      headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+token },
+      body: JSON.stringify(updatedPoem)
+    });
+    loadPoems();
+  }
+
+  window.deletePoem = async (id)=> {
+    if(!confirm("Are you sure you want to delete this poem?")) return;
+    await fetch(`http://localhost:5000/poems/${id}`, {
+      method:"DELETE",
+      headers:{ "Authorization":"Bearer "+token }
+    });
+    loadPoems();
+  }
+
+  // =================== SEND EMAIL TO USERS ===================
+  const sendEmailBtn = document.getElementById("sendEmailBtn");
+
+  sendEmailBtn.addEventListener("click", async () => {
+    const subject = document.getElementById("emailSubject").value;
+    const body = document.getElementById("emailBody").value;
+
+    if(!subject || !body) return alert("Please provide both subject and body");
+
+    try {
+      const res = await fetch("http://localhost:5000/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization":"Bearer "+token },
+        body: JSON.stringify({ subject, body })
+      });
+
+      const data = await res.json();
+      if(data.error) alert("❌ " + data.error);
+      else alert("✅ Emails sent successfully!");
+
+      // Clear form
+      document.getElementById("emailSubject").value = "";
+      document.getElementById("emailBody").value = "";
+    } catch(err){
+      console.error(err);
+      alert("❌ Failed to send emails");
+    }
+  });
+
+  // =================== RESEARCH PAPERS ===================
+  const researchTableBody = document.querySelector("#researchTable tbody");
+  const researchSearchInput = document.getElementById("researchSearchInput");
+  let researchData = [];
+
+  async function loadResearch(){
+    try{
+      const res = await fetch("http://localhost:5000/research-papers", { 
+        headers:{ "Authorization":"Bearer "+token } 
+      });
+      researchData = await res.json();
+      renderResearch(researchData);
+    }catch(err){ console.error(err); }
+  }
+
+  function renderResearch(data){
+    researchTableBody.innerHTML = "";
+    data.forEach(p => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="text" value="${p.title}" id="paperTitle-${p._id}"></td>
+        <td><input type="text" value="${p.authors}" id="paperAuthors-${p._id}"></td>
+        <td><input type="number" value="${p.year}" id="paperYear-${p._id}"></td>
+        <td><input type="text" value="${p.keywords}" id="paperKeywords-${p._id}"></td>
+        <td><a href="${p.fileUrl}" target="_blank">View PDF</a></td>
+        <td>
+          <button class="edit-btn" onclick="editPaper('${p._id}')">Save</button>
+          <button class="delete-btn" onclick="deletePaper('${p._id}')">Delete</button>
+        </td>
+      `;
+      researchTableBody.appendChild(tr);
+    });
+  }
+
+  document.getElementById("uploadPaperBtn").addEventListener("click", async () => {
+  const formData = new FormData();
+
+  const file = document.getElementById("paperFile").files[0];
+
+  if(!file) return alert("Please select a PDF file");
+
+  formData.append("file", file);
+  formData.append("title", document.getElementById("paperTitle").value);
+  formData.append("authors", document.getElementById("paperAuthors").value);
+  formData.append("year", document.getElementById("paperYear").value);
+  formData.append("abstract", document.getElementById("paperAbstract").value);
+  formData.append("keywords", document.getElementById("paperKeywords").value);
+
+  try {
+    await fetch("http://localhost:5000/research-papers", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + token
+      },
+      body: formData
+    });
+
+    alert("✅ Research paper uploaded");
+    loadResearch(); // refresh table
+  } catch (err) {
+    console.error(err);
+    alert("❌ Upload failed");
+  }
+});
+
+// 👇 PASTE HERE
+document.getElementById("uploadResourceBtn").addEventListener("click", async () => {
+  const formData = new FormData();
+
+  const file = document.getElementById("resourceFile").files[0];
+  if(!file) return alert("Select a file");
+
+  formData.append("file", file);
+  formData.append("title", document.getElementById("resourceTitle").value);
+  formData.append("author", document.getElementById("resourceAuthor").value);
+  formData.append("subject", document.getElementById("resourceSubject").value);
+  formData.append("description", document.getElementById("resourceDescription").value);
+
+  try{
+    await fetch("http://localhost:5000/teaching-resources", {
+      method:"POST",
+      headers:{ "Authorization":"Bearer "+token },
+      body: formData
+    });
+
+    alert("✅ Resource uploaded");
+    loadTeaching();
+
+  }catch(err){
+    console.error(err);
+    alert("❌ Upload failed");
+  }
+});
+
+window.editPaper = async (id) => {
+  const updated = {
+    title: document.getElementById(`paperTitle-${id}`).value,
+    authors: document.getElementById(`paperAuthors-${id}`).value,
+    year: document.getElementById(`paperYear-${id}`).value,
+    keywords: document.getElementById(`paperKeywords-${id}`).value
+  };
+
+  try {
+    await fetch(`http://localhost:5000/research-papers/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify(updated)
+    });
+
+    alert("✅ Updated");
+    loadResearch();
+  } catch (err) {
+    console.error(err);
+    alert("❌ Update failed");
+  }
+};
+
+// 👇 PASTE HERE
+window.editTeaching = async (id) => {
+  const updated = {
+    title: document.getElementById(`t-title-${id}`).value,
+    author: document.getElementById(`t-author-${id}`).value,
+    subject: document.getElementById(`t-subject-${id}`).value
+  };
+
+  await fetch(`http://localhost:5000/teaching-resources/${id}`, {
+    method:"PUT",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer "+token
+    },
+    body: JSON.stringify(updated)
+  });
+
+  loadTeaching();
+};
+
+window.deletePaper = async (id) => {
+  if(!confirm("Delete this research paper?")) return;
+
+  try {
+    await fetch(`http://localhost:5000/research-papers/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    });
+
+    alert("🗑 Deleted");
+    loadResearch();
+  } catch (err) {
+    console.error(err);
+    alert("❌ Delete failed");
+  }
+};
+
+// 👇 PASTE HERE
+window.deleteTeaching = async (id) => {
+  if(!confirm("Delete this resource?")) return;
+
+  await fetch(`http://localhost:5000/teaching-resources/${id}`, {
+    method:"DELETE",
+    headers:{ "Authorization":"Bearer "+token }
+  });
+
+  loadTeaching();
+};
+
+  // =================== USERS ===================
+  const usersTableBody = document.querySelector("#usersTable tbody");
+  const totalUsersSpan = document.getElementById("totalUsers");
+  const blockedUsersSpan = document.getElementById("blockedUsers");
+  let usersData = [];
+  const usersSearchInput = document.getElementById("usersSearchInput");
+
+usersSearchInput.addEventListener("input", () => {
+  const term = usersSearchInput.value.toLowerCase().trim();
+
+  if (!term) {
+    renderUsers(usersData); // reset table when empty
+    return;
+  }
+
+  const filtered = usersData.filter(u => {
+    const username = (u.username || "").toLowerCase();
+    const email = (u.email || "").toLowerCase();
+
+    return username.includes(term) || email.includes(term);
+  });
+
+  renderUsers(filtered);
+});
+
+  async function loadUsers(){
+    try{
+      const res = await fetch("http://localhost:5000/users", { headers:{ "Authorization":"Bearer "+token } });
+      usersData = await res.json();
+      renderUsers(usersData);
+    }catch(err){ console.error(err); }
+  }
+
+  function renderUsers(data){
+    usersTableBody.innerHTML = "";
+    data.forEach(u=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+  <td>${u.username}</td>
+  <td>${u.email}</td>
+  <td>${u.blocked ? "Blocked" : "Active"}</td>
+  <td>
+          <button class="edit-btn" onclick="toggleBlockUser('${u._id}', ${u.blocked})">
+            ${u.blocked ? "Unblock" : "Block"}
+          </button>
+          <button class="delete-btn" onclick="deleteUser('${u._id}')">Delete</button>
+        </td>
+      `;
+      usersTableBody.appendChild(tr);
+    });
+    totalUsersSpan.textContent = data.length;
+    blockedUsersSpan.textContent = data.filter(u=>u.blocked).length;
+  }
+
+  window.deleteUser = async (id)=>{
+    if(!confirm("Are you sure you want to delete this user?")) return;
+    await fetch(`http://localhost:5000/users/${id}`, {
+      method:"DELETE",
+      headers:{ "Authorization":"Bearer "+token }
+    });
+    loadUsers();
+  }
+
+  window.toggleBlockUser = async (id, currentlyBlocked)=>{
+    const endpoint = currentlyBlocked ? "unblock" : "block";
+    await fetch(`http://localhost:5000/users/${id}/${endpoint}`, {
+      method:"PUT",
+      headers:{ "Authorization":"Bearer "+token }
+    });
+    loadUsers();
+  }
+
+// =================== ADS ===================
+const adsTableBody = document.querySelector("#adsTable tbody");
+const adsSearchInput = document.getElementById("adsSearchInput");
+let adsData = [];
+
+async function loadAds(){
+  try{
+    const res = await fetch("http://localhost:5000/admin/ads", {
+      headers:{ "Authorization":"Bearer "+token }
+    });
+
+    adsData = await res.json();
+    renderAds(adsData);
+  }catch(err){ console.error(err); }
+}
+
+async function loadTeaching(){
+  try{
+    const res = await fetch("http://localhost:5000/teaching-resources", {
+      headers:{ "Authorization":"Bearer "+token }
+    });
+
+    teachingData = await res.json();
+    renderTeaching(teachingData);
+
+  }catch(err){
+    console.error(err);
+  }
+}
+
+function renderAds(data){
+  adsTableBody.innerHTML = "";
+
+  data.forEach(ad=>{
+    const tr = document.createElement("tr");
+
+    const amount = "$" + ad.duration;
+
+    tr.innerHTML = `
+      <td>${ad.name}</td>
+      <td>${ad.phone}</td>
+      <td>${amount}</td>
+      <td>${ad.approvalCode}</td>
+      <td>${ad.text}</td>
+      <td>${ad.image ? `<img src="${ad.image}" style="max-width:70px;">` : "No Image"}</td>
+      <td>${ad.approved ? "Approved" : "Pending"}</td>
+      <td>
+        ${!ad.approved ? `<button class="edit-btn" onclick="approveAd('${ad._id}')">Approve</button>` : ""}
+        <button class="delete-btn" onclick="deleteAd('${ad._id}')">Delete</button>
+      </td>
+    `;
+
+    adsTableBody.appendChild(tr);
+  });
+}
+
+// 👇 PASTE renderTeaching HERE
+function renderTeaching(data){
+  teachingTableBody.innerHTML = "";
+
+  data.forEach(r => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td><input type="text" value="${r.title}" id="t-title-${r._id}"></td>
+      <td><input type="text" value="${r.author}" id="t-author-${r._id}"></td>
+      <td><input type="text" value="${r.subject}" id="t-subject-${r._id}"></td>
+
+      <td>
+        <a href="${r.fileUrl}" target="_blank">Open File</a>
+      </td>
+
+      <td>
+        <button class="edit-btn" onclick="editTeaching('${r._id}')">Save</button>
+        <button class="delete-btn" onclick="deleteTeaching('${r._id}')">Delete</button>
+      </td>
+    `;
+
+    teachingTableBody.appendChild(tr);
+  });
+}
+
+
+// SEARCH
+adsSearchInput.addEventListener("input", ()=>{
+  const term = adsSearchInput.value.toLowerCase();
+
+  const filtered = adsData.filter(ad =>
+    ad.name.toLowerCase().includes(term) ||
+    ad.phone.toLowerCase().includes(term)
+  );
+
+  renderAds(filtered);
+});
+
+// 👇 PASTE HERE
+teachingSearchInput.addEventListener("input", () => {
+  const term = teachingSearchInput.value.toLowerCase();
+
+  const filtered = teachingData.filter(r =>
+    r.title.toLowerCase().includes(term) ||
+    (r.author && r.author.toLowerCase().includes(term)) ||
+    (r.subject && r.subject.toLowerCase().includes(term))
+  );
+
+  renderTeaching(filtered);
+});
+
+// APPROVE
+window.approveAd = async (id)=>{
+  await fetch(`http://localhost:5000/admin/ads/${id}/approve`,{
+    method:"PUT",
+    headers:{ "Authorization":"Bearer "+token }
+  });
+
+  alert("✅ Ad approved and sent to homepage");
+  loadAds();
+};
+
+// DELETE
+window.deleteAd = async (id)=>{
+  if(!confirm("Delete this ad?")) return;
+
+  await fetch(`http://localhost:5000/admin/ads/${id}`,{
+    method:"DELETE",
+    headers:{ "Authorization":"Bearer "+token }
+  });
+
+  loadAds();
+};
+
+});
+</script>
+
+</body>
+</html>

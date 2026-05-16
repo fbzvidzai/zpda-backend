@@ -8,6 +8,16 @@ const nodemailer = require("nodemailer");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs-extra");
+const crypto = require("crypto");
+
+process.on("uncaughtException", err => {
+  console.error("🔥 Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", err => {
+  console.error("🔥 Unhandled Rejection:", err);
+});
+
 fs.ensureDirSync(path.join(__dirname, "teaching-resources"));
 fs.ensureDirSync(path.join(__dirname, "research-papers"));
 
@@ -18,6 +28,12 @@ const openai = new OpenAI({
 });
 
 const app = express();
+
+app.use((req, res, next) => {
+  console.log("➡️", req.method, req.url);
+  next();
+});
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(express.json());
@@ -25,6 +41,7 @@ app.use(cors());
 app.use(express.static("public"));
 app.use("/research-papers", express.static(path.join(__dirname, "research-papers")));
 app.use("/teaching-resources", express.static(path.join(__dirname, "teaching-resources")));
+
 // =======================
 // TAURAAI ROUTE
 // =======================
@@ -63,12 +80,39 @@ app.post("/ask-ai", async (req, res) => {
   }
 });
 // =======================
-// MONGODB CONNECTION
 // =======================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected ✅"))
-  .catch(err => console.error("MongoDB connection error ❌", err));
+// =======================
+// MONGODB CONNECTION (FIXED)
+// =======================
+const MONGO_URI = process.env.MONGO_URI;
 
+if (!MONGO_URI) {
+  console.error("❌ MONGO_URI is missing in .env");
+  process.exit(1);
+}
+
+mongoose.connect(MONGO_URI, {
+  serverSelectionTimeoutMS: 5000, // fail fast if no connection
+})
+.then(() => {
+  console.log("✅ MongoDB connected successfully");
+})
+.catch((err) => {
+  console.error("❌ Initial MongoDB connection error:", err.message);
+});
+
+// Optional: better event logging
+mongoose.connection.on("connected", () => {
+  console.log("📡 MongoDB event: connected");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ MongoDB runtime error:", err.message);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠️ MongoDB disconnected");
+});
 // =======================
 // SCHEMAS
 // =======================
@@ -199,8 +243,21 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
-  }
+  },
+  family: 4, // FORCE IPv4
+  connectionTimeout: 10000,
+  socketTimeout: 10000
 });
+
+const sendMailSafe = async (mailOptions) => {
+  try {
+    return await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error("❌ Email failed:", err.message);
+    return null;
+  }
+};
+
 // =======================
 // TEST EMAIL FUNCTION
 // =======================
@@ -266,57 +323,87 @@ app.post("/signup", async (req, res) => {
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
+
   const user = await User.findOne({ email });
-  if(!user) return res.json({ error: "User not found" });
-  if(user.blocked) return res.json({ error: "User blocked" });
+  if (!user) return res.json({ error: "User not found" });
 
   const match = await bcrypt.compare(password, user.password);
-  if(!match) return res.json({ error: "Wrong password" });
+  if (!match) return res.json({ error: "Wrong password" });
 
   const token = jwt.sign(
     { _id: user._id, username: user.username, role: user.role },
     process.env.JWT_SECRET
   );
 
-  res.json({ user: { _id: user._id, username: user.username, email: user.email, role: user.role }, token });
-});
-
-const crypto = require("crypto");
-
-app.post("/forgot-password", async (req, res) => {
-  const { email } = req.body;
-
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ error: "User not found" });
-
-  // Generate temporary password
-  const tempPassword = Math.random().toString(36).slice(-8);
-
-  // Hash and save it
-  const hashed = await bcrypt.hash(tempPassword, 10);
-  user.password = hashed;
-
-  await user.save();
-
-  // Send email with temporary password
-  await transporter.sendMail({
-    from: process.env.ADMIN_EMAIL,
-    to: user.email,
-    subject: "Temporary Password - ZPDA",
-    text: `Hello ${user.username},
-
-You requested a password reset.
-
-Your temporary password is:
-
-${tempPassword}
-
-You can now use this password to log in to your account.
-`
+  res.json({
+    user: {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    },
+    token
   });
+});   // 👈 THIS CLOSES LOGIN ROUTE
 
-  res.json({ message: "Temporary password sent to email" });
+app.post('/send-email', verifyAdmin, async (req, res) => {
+  const { subject, body } = req.body;
+
+  if (!subject || !body) {
+    return res.status(400).json({ error: "Subject and body required" });
+  }
+
+  try {
+    const users = await User.find({ blocked: false }).select("email username");
+
+    // fire-and-forget
+    setImmediate(() => {
+      users.forEach(user => {
+        transporter.sendMail({
+          from: `"ZPDA Admin" <${process.env.SMTP_USER}>`,
+          to: user.email,
+          subject,
+          text: `Hello ${user.username},\n\n${body}`
+        }).catch(err => console.log("Email failed:", user.email));
+      });
+    });
+
+    res.json({ message: "Emails queued successfully 🚀" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to send emails" });
+  }
 });
+app.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.json({ error: "User not found" });
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+user.resetToken = token;
+user.resetTokenExpiry = Date.now() + 1000 * 60 * 15; // 15 min
+await user.save();
+
+    // 🔥 DO NOT block response
+   sendMailSafe({
+  from: process.env.SMTP_USER,
+  to: email,
+  subject: "Your Temporary Password",
+  text: `Your temporary password is: ${tempPassword}`
+});
+
+    return res.json({ message: "Temporary password sent to email" });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 // =======================
 // ADMIN LOGIN

@@ -12,7 +12,7 @@ const dashboard = document.getElementById("dashboard");
 const poemTableBody = document.querySelector("#poemTable tbody");
 const logoutBtn = document.getElementById("logoutBtn");
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://zpda-backend-1.onrender.com";
 
 // ----------------------------
 // Check if already logged in

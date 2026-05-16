@@ -264,7 +264,7 @@ let teachingData = [];
     const password = document.getElementById("adminPass").value;
 
     try {
-      const res = await fetch("http://localhost:5000/admin-login", {
+      const res = await fetch("https://zpda-backend-1.onrender.com/admin-login", {
         method:"POST",
         headers: { "Content-Type":"application/json" },
         body: JSON.stringify({ email, password })
@@ -369,7 +369,7 @@ switchFromAds.addEventListener("click", () => {
 
   async function loadPoems(){
     try{
-      const res = await fetch("http://localhost:5000/poems", { headers:{ "Authorization":"Bearer "+token } });
+      const res = await fetch("https://zpda-backend-1.onrender.com/poems", { headers:{ "Authorization":"Bearer "+token } });
       poemsData = await res.json();
       renderPoems(poemsData);
     }catch(err){ console.error(err); }
@@ -412,7 +412,7 @@ switchFromAds.addEventListener("click", () => {
     };
     if(!newPoem.title || !newPoem.author || !newPoem.text) return alert("Title, author, text required");
     try{
-      await fetch("http://localhost:5000/poems", {
+      await fetch("https://zpda-backend-1.onrender.com/poems", {
         method:"POST",
         headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+token },
         body: JSON.stringify(newPoem)
@@ -427,7 +427,7 @@ switchFromAds.addEventListener("click", () => {
       author: document.getElementById(`author-${id}`).value,
       text: document.getElementById(`text-${id}`).value
     };
-    await fetch(`http://localhost:5000/poems/${id}`, {
+    await fetch(`https://zpda-backend-1.onrender.com/poems/${id}`, {
       method:"PUT",
       headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+token },
       body: JSON.stringify(updatedPoem)
@@ -437,7 +437,7 @@ switchFromAds.addEventListener("click", () => {
 
   window.deletePoem = async (id)=> {
     if(!confirm("Are you sure you want to delete this poem?")) return;
-    await fetch(`http://localhost:5000/poems/${id}`, {
+    await fetch(`https://zpda-backend-1.onrender.com/poems/${id}`, {
       method:"DELETE",
       headers:{ "Authorization":"Bearer "+token }
     });
@@ -454,7 +454,7 @@ switchFromAds.addEventListener("click", () => {
     if(!subject || !body) return alert("Please provide both subject and body");
 
     try {
-      const res = await fetch("http://localhost:5000/send-email", {
+      const res = await fetch("https://zpda-backend-1.onrender.com/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization":"Bearer "+token },
         body: JSON.stringify({ subject, body })
@@ -480,7 +480,7 @@ switchFromAds.addEventListener("click", () => {
 
   async function loadResearch(){
     try{
-      const res = await fetch("http://localhost:5000/research-papers", { 
+      const res = await fetch("https://zpda-backend-1.onrender.com/research-papers", { 
         headers:{ "Authorization":"Bearer "+token } 
       });
       researchData = await res.json();
@@ -522,7 +522,7 @@ switchFromAds.addEventListener("click", () => {
   formData.append("keywords", document.getElementById("paperKeywords").value);
 
   try {
-    await fetch("http://localhost:5000/research-papers", {
+    await fetch("https://zpda-backend-1.onrender.com/research-papers", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + token
@@ -552,7 +552,7 @@ document.getElementById("uploadResourceBtn").addEventListener("click", async () 
   formData.append("description", document.getElementById("resourceDescription").value);
 
   try{
-    await fetch("http://localhost:5000/teaching-resources", {
+    await fetch("https://zpda-backend-1.onrender.com/teaching-resources", {
       method:"POST",
       headers:{ "Authorization":"Bearer "+token },
       body: formData
@@ -576,7 +576,7 @@ window.editPaper = async (id) => {
   };
 
   try {
-    await fetch(`http://localhost:5000/research-papers/${id}`, {
+    await fetch(`https://zpda-backend-1.onrender.com/research-papers/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -601,7 +601,7 @@ window.editTeaching = async (id) => {
     subject: document.getElementById(`t-subject-${id}`).value
   };
 
-  await fetch(`http://localhost:5000/teaching-resources/${id}`, {
+  await fetch(`https://zpda-backend-1.onrender.com/teaching-resources/${id}`, {
     method:"PUT",
     headers:{
       "Content-Type":"application/json",
@@ -617,7 +617,7 @@ window.deletePaper = async (id) => {
   if(!confirm("Delete this research paper?")) return;
 
   try {
-    await fetch(`http://localhost:5000/research-papers/${id}`, {
+    await fetch(`https://zpda-backend-1.onrender.com/research-papers/${id}`, {
       method: "DELETE",
       headers: {
         "Authorization": "Bearer " + token
@@ -636,7 +636,7 @@ window.deletePaper = async (id) => {
 window.deleteTeaching = async (id) => {
   if(!confirm("Delete this resource?")) return;
 
-  await fetch(`http://localhost:5000/teaching-resources/${id}`, {
+  await fetch(`https://zpda-backend-1.onrender.com/teaching-resources/${id}`, {
     method:"DELETE",
     headers:{ "Authorization":"Bearer "+token }
   });
@@ -671,7 +671,7 @@ usersSearchInput.addEventListener("input", () => {
 
   async function loadUsers(){
     try{
-      const res = await fetch("http://localhost:5000/users", { headers:{ "Authorization":"Bearer "+token } });
+      const res = await fetch("https://zpda-backend-1.onrender.com/users", { headers:{ "Authorization":"Bearer "+token } });
       usersData = await res.json();
       renderUsers(usersData);
     }catch(err){ console.error(err); }
@@ -700,7 +700,7 @@ usersSearchInput.addEventListener("input", () => {
 
   window.deleteUser = async (id)=>{
     if(!confirm("Are you sure you want to delete this user?")) return;
-    await fetch(`http://localhost:5000/users/${id}`, {
+    await fetch(`https://zpda-backend-1.onrender.com/users/${id}`, {
       method:"DELETE",
       headers:{ "Authorization":"Bearer "+token }
     });
@@ -709,7 +709,7 @@ usersSearchInput.addEventListener("input", () => {
 
   window.toggleBlockUser = async (id, currentlyBlocked)=>{
     const endpoint = currentlyBlocked ? "unblock" : "block";
-    await fetch(`http://localhost:5000/users/${id}/${endpoint}`, {
+    await fetch(`https://zpda-backend-1.onrender.com/users/${id}/${endpoint}`, {
       method:"PUT",
       headers:{ "Authorization":"Bearer "+token }
     });
@@ -723,7 +723,7 @@ let adsData = [];
 
 async function loadAds(){
   try{
-    const res = await fetch("http://localhost:5000/admin/ads", {
+    const res = await fetch("https://zpda-backend-1.onrender.com/admin/ads", {
       headers:{ "Authorization":"Bearer "+token }
     });
 
@@ -734,7 +734,7 @@ async function loadAds(){
 
 async function loadTeaching(){
   try{
-    const res = await fetch("http://localhost:5000/teaching-resources", {
+    const res = await fetch("https://zpda-backend-1.onrender.com/teaching-resources", {
       headers:{ "Authorization":"Bearer "+token }
     });
 
@@ -826,7 +826,7 @@ teachingSearchInput.addEventListener("input", () => {
 
 // APPROVE
 window.approveAd = async (id)=>{
-  await fetch(`http://localhost:5000/admin/ads/${id}/approve`,{
+  await fetch(`https://zpda-backend-1.onrender.com/admin/ads/${id}/approve`,{
     method:"PUT",
     headers:{ "Authorization":"Bearer "+token }
   });
@@ -839,7 +839,7 @@ window.approveAd = async (id)=>{
 window.deleteAd = async (id)=>{
   if(!confirm("Delete this ad?")) return;
 
-  await fetch(`http://localhost:5000/admin/ads/${id}`,{
+  await fetch(`https://zpda-backend-1.onrender.com/admin/ads/${id}`,{
     method:"DELETE",
     headers:{ "Authorization":"Bearer "+token }
   });

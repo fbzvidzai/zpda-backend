@@ -11,6 +11,8 @@ const fs = require("fs-extra");
 const crypto = require("crypto");
 const dns = require("dns");
 
+dns.setDefaultResultOrder("ipv4first");
+
 process.on("uncaughtException", err => {
   console.error("🔥 Uncaught Exception:", err);
 });
@@ -253,9 +255,7 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 10000
 });
 
-const dns = require("dns");
 
-dns.setDefaultResultOrder("ipv4first");
 
 const sendMailSafe = async (mailOptions) => {
   try {

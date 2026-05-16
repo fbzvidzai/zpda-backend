@@ -9,6 +9,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs-extra");
 const crypto = require("crypto");
+const dns = require("dns");
 
 process.on("uncaughtException", err => {
   console.error("🔥 Uncaught Exception:", err);
@@ -247,12 +248,14 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   },
-  tls: {
-    family: 4,
-    rejectUnauthorized: false
-  },
-  connectionTimeout: 10000
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000
 });
+
+const dns = require("dns");
+
+dns.setDefaultResultOrder("ipv4first");
 
 const sendMailSafe = async (mailOptions) => {
   try {

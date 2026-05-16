@@ -393,25 +393,26 @@ app.post("/forgot-password", async (req, res) => {
 
     await user.save();
 
-    await sendMailSafe({
+    const info = await transporter.sendMail({
       from: process.env.SMTP_USER,
       to: email,
       subject: "Temporary Password",
       text: `Your temporary password is: ${tempPassword}`
     });
 
-    return res.json({
-      message: "Temporary password sent successfully ✅"
+    console.log("✅ Email sent:", info.response);
+
+    res.json({
+      message: "Temporary password sent successfully"
     });
 
   } catch (err) {
-    console.error("Forgot Password Error:", err);
-    return res.status(500).json({
+    console.error("Forgot password error:", err);
+    res.status(500).json({
       error: "Server error"
     });
   }
 });
-
 
 // =======================
 // ADMIN LOGIN

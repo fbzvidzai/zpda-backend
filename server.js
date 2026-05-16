@@ -239,14 +239,19 @@ function verifyAdmin(req, res, next) {
 // EMAIL CONFIG
 // =======================
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  requireTLS: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   },
-  family: 4,
-  connectionTimeout: 10000,
-  socketTimeout: 10000
+  tls: {
+    family: 4,
+    rejectUnauthorized: false
+  },
+  connectionTimeout: 10000
 });
 
 const sendMailSafe = async (mailOptions) => {

@@ -244,7 +244,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   },
-  family: 4, // FORCE IPv4
+  family: 4,
   connectionTimeout: 10000,
   socketTimeout: 10000
 });
@@ -380,27 +380,35 @@ app.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.json({ error: "User not found" });
 
-    const token = crypto.randomBytes(32).toString("hex");
+    if (!user) {
+      return res.json({ error: "User not found" });
+    }
 
-user.resetToken = token;
-user.resetTokenExpiry = Date.now() + 1000 * 60 * 15; // 15 min
-await user.save();
+    const tempPassword = crypto.randomBytes(4).toString("hex");
 
-    // 🔥 DO NOT block response
-   sendMailSafe({
-  from: process.env.SMTP_USER,
-  to: email,
-  subject: "Your Temporary Password",
-  text: `Your temporary password is: ${tempPassword}`
-});
+    const hashed = await bcrypt.hash(tempPassword, 10);
 
-    return res.json({ message: "Temporary password sent to email" });
+    user.password = hashed;
+
+    await user.save();
+
+    await sendMailSafe({
+      from: process.env.SMTP_USER,
+      to: email,
+      subject: "Temporary Password",
+      text: `Your temporary password is: ${tempPassword}`
+    });
+
+    return res.json({
+      message: "Temporary password sent successfully ✅"
+    });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Server error" });
+    console.error("Forgot Password Error:", err);
+    return res.status(500).json({
+      error: "Server error"
+    });
   }
 });
 
